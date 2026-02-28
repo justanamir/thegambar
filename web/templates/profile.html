@@ -2,23 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{.Name}} — thegambar</title>
+    <link rel="stylesheet" href="/static/css/output.css">
 </head>
-<body>
-    <a href="/">← Back to directory</a>
+<body class="font-body text-ink bg-cream min-h-screen">
 
-    <h1>{{.Name}}</h1>
-    <p><strong>{{.Specialty}}</strong> · {{.City}}</p>
-    <p>{{.Bio}}</p>
+    <!-- Nav -->
+    <header class="border-b border-ink/20 px-6 py-4">
+        <a href="/" class="font-display text-2xl font-bold tracking-tight text-ink hover:text-orange transition-colors duration-150">thegambar</a>
+    </header>
 
-    {{if .Email}}
-        <p>Email: {{.Email}}</p>
-    {{end}}
-    {{if .WhatsApp}}
-        <p>WhatsApp: {{.WhatsApp}}</p>
-    {{end}}
-    {{if .Website}}
-        <p>Website: <a href="https://{{.Website}}">{{.Website}}</a></p>
-    {{end}}
+    <!-- Back link (mobile + desktop) -->
+    <div class="px-6 pt-4 pb-2">
+        <a href="/" class="inline-flex items-center gap-1 text-xs font-medium tracking-widest uppercase text-ink/40 hover:text-ink transition-colors duration-150">
+            <span>←</span> Directory
+        </a>
+    </div>
+
+    <!-- Main layout: sticky left + scrolling right on desktop -->
+    <div class="max-w-6xl mx-auto px-6 pb-32 md:pb-20 md:flex md:gap-12 md:items-start">
+
+        <!-- LEFT PANEL — sticky on desktop, normal flow on mobile -->
+        <aside class="md:sticky md:top-8 md:w-72 md:flex-shrink-0 mb-8 md:mb-0">
+
+            <!-- Avatar placeholder -->
+            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-warm flex items-center justify-center mb-4 shadow-sm">
+                <span class="font-display text-4xl md:text-5xl font-bold text-ink/20 select-none">
+                    {{slice .Name 0 1}}
+                </span>
+            </div>
+
+            <!-- Name + specialty + city -->
+            <h1 class="font-display text-2xl md:text-3xl font-bold text-ink leading-tight">
+                {{.Name}}
+            </h1>
+            <div class="flex items-center gap-2 mt-2 flex-wrap">
+                <span class="bg-orange text-cream text-xs font-medium px-3 py-1 rounded-full tracking-wide">
+                    {{.Specialty}}
+                </span>
+                <span class="text-ink/50 text-sm flex items-center gap-1">
+                    <span>📍</span> {{.City}}
+                </span>
+            </div>
+
+            <!-- Bio -->
+            {{if .Bio}}
+            <p class="text-ink/70 text-sm leading-relaxed mt-4">
+                {{.Bio}}
+            </p>
+            {{end}}
+
+            <!-- Contact buttons — visible on desktop, hidden on mobile (sticky bar handles mobile) -->
+            <div class="hidden md:flex flex-col gap-3 mt-6">
+                {{if .Email}}
+                <a href="mailto:{{.Email}}"
+                   class="flex items-center justify-center gap-2 bg-orange text-cream text-sm font-medium px-4 py-3 rounded-xl hover:bg-orange/80 transition-colors duration-150">
+                    ✉️ Email {{.Name}}
+                </a>
+                {{end}}
+                {{if .Whatsapp}}
+                <a href="https://wa.me/{{.Whatsapp}}"
+                   class="flex items-center justify-center gap-2 bg-orange text-cream text-sm font-medium px-4 py-3 rounded-xl hover:bg-orange/80 transition-colors duration-150">
+                    💬 WhatsApp
+                </a>
+                {{end}}
+                {{if .Website}}
+                <a href="https://{{.Website}}" target="_blank" rel="noopener noreferrer"
+                   class="flex items-center justify-center gap-2 border border-orange/40 text-ink text-sm font-medium px-4 py-3 rounded-xl hover:bg-warm transition-colors duration-150">
+                    🌐 Visit Website
+                </a>
+                {{end}}
+            </div>
+
+            <!-- Privacy note -->
+            <p class="hidden md:block text-ink/30 text-xs mt-4 leading-relaxed">
+                Contact details shared with photographer's consent. thegambar does not store your messages.
+            </p>
+
+        </aside>
+
+        <!-- RIGHT PANEL — portfolio grid -->
+        <main class="flex-1">
+            <h2 class="font-display text-lg font-bold text-ink mb-4 tracking-tight">Portfolio</h2>
+
+            <!-- 2-column grid. Real photos will replace these placeholders. -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="aspect-square bg-warm rounded-xl flex items-center justify-center col-span-2">
+                    <p class="text-ink/40 text-sm">Portfolio arrives on Day 9 — image upload + storage.</p>
+                </div>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- STICKY CONTACT BAR — mobile only, pinned to bottom -->
+    <div class="fixed bottom-0 left-0 right-0 md:hidden bg-cream border-t border-ink/10 px-4 py-3 flex gap-2 shadow-lg">
+        {{if .Email}}
+        <a href="mailto:{{.Email}}"
+           class="flex-1 flex items-center justify-center gap-1 bg-orange text-cream text-sm font-medium px-3 py-3 rounded-xl">
+            ✉️ Email
+        </a>
+        {{end}}
+        {{if .Whatsapp}}
+        <a href="https://wa.me/{{.Whatsapp}}"
+           class="flex-1 flex items-center justify-center gap-1 bg-orange text-cream text-sm font-medium px-3 py-3 rounded-xl">
+            💬 WhatsApp
+        </a>
+        {{end}}
+        {{if .Website}}
+        <a href="https://{{.Website}}" target="_blank" rel="noopener noreferrer"
+           class="flex-1 flex items-center justify-center gap-1 border border-orange/40 text-ink text-sm font-medium px-3 py-3 rounded-xl">
+            🌐 Web
+        </a>
+        {{end}}
+    </div>
+
 </body>
 </html>

@@ -43,6 +43,7 @@ func main() {
 	http.HandleFunc("/photographer/", profileHandler)
 
 	fmt.Println("thegambar running on http://localhost:8080")
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 	http.ListenAndServe(":8080", nil)
 }
 
