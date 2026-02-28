@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 type Photographer struct {
@@ -26,6 +28,7 @@ var photographers = []Photographer{
 func main() {
 	// When someone visits /, run the homepageHandler function
 	http.HandleFunc("/", homepageHandler)
+	http.HandleFunc("/photographer/", profileHandler)
 
 	// Start listening on port 8080
 	fmt.Println("thegambar running on http://localhost:8080")
@@ -39,7 +42,7 @@ func homepageHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, p := range photographers {
 		fmt.Fprintf(w, "<div style='margin-bottom:20px'>")
-		fmt.Fprintf(w, "<h2>%s</h2>", p.Name)
+		fmt.Fprintf(w, "<h2><a href='/photographer/%d'>%s</a></h2>", p.ID, p.Name)
 		fmt.Fprintf(w, "<p>%s · %s</p>", p.Specialty, p.City)
 		printContactHTML(w, p)
 		fmt.Fprintf(w, "</div>")
@@ -56,4 +59,40 @@ func printContactHTML(w http.ResponseWriter, p Photographer) {
 	if p.Website != "" {
 		fmt.Fprintf(w, "<p>Website: <a href='https://%s'>%s</a></p>", p.Website, p.Website)
 	}
+}
+
+func profileHandler(w http.ResponseWriter, r *http.Request) {
+	// Step 1: Pull the ID string out of the URL
+	// r.URL.Path looks like "/photographer/1"
+	// We strip the prefix to get just "1"
+	idStr := strings.TrimPrefix(r.URL.Path, "/photographer/")
+
+	// Step 2: Convert "1" (string) to 1 (int)
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid photographer ID", http.StatusBadRequest)
+		return
+	}
+
+	// Step 3: Find the photographer in our slice
+	var found *Photographer
+	for i := range photographers {
+		if photographers[i].ID == id {
+			found = &photographers[i]
+			break
+		}
+	}
+
+	// Step 4: If nobody matched, say so
+	if found == nil {
+		http.Error(w, "Photographer not found", http.StatusNotFound)
+		return
+	}
+
+	// Step 5: Render their profile
+	fmt.Fprintf(w, "<h1>%s</h1>", found.Name)
+	fmt.Fprintf(w, "<p><strong>%s</strong> · %s</p>", found.Specialty, found.City)
+	fmt.Fprintf(w, "<p>%s</p>", found.Bio)
+	printContactHTML(w, *found)
+	fmt.Fprintf(w, "<br><a href='/'>← Back to directory</a>")
 }
