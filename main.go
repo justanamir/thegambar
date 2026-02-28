@@ -1,9 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
-// This is your Photographer blueprint.
-// Every photographer on thegambar will be one of these.
 type Photographer struct {
 	ID        int
 	Name      string
@@ -15,37 +16,44 @@ type Photographer struct {
 	Website   string
 }
 
+// Your fake data lives here for now
+var photographers = []Photographer{
+	{ID: 1, Name: "Amir Hamzah", Specialty: "Wedding", City: "Kuala Lumpur", Email: "amir@email.com", WhatsApp: "+60123456789"},
+	{ID: 2, Name: "Sara Lim", Specialty: "Street", City: "Penang", Email: "sara@email.com", Website: "saralim.com"},
+	{ID: 3, Name: "Razif Osman", Specialty: "Commercial", City: "Johor Bahru", WhatsApp: "+60198765432"},
+}
+
 func main() {
-	// A slice — think of it as your directory listing.
-	// Right now it's fake data. Later this comes from a real database.
-	photographers := []Photographer{
-		{ID: 1, Name: "Amir Hamzah", Specialty: "Wedding", City: "Kuala Lumpur", Email: "amir@email.com", WhatsApp: "+60123456789"},
-		{ID: 2, Name: "Sara Lim", Specialty: "Street", City: "Penang", Email: "sara@email.com", Website: "saralim.com"},
-		{ID: 3, Name: "Razif Osman", Specialty: "Commercial", City: "Johor Bahru", WhatsApp: "+60198765432"},
-	}
+	// When someone visits /, run the homepageHandler function
+	http.HandleFunc("/", homepageHandler)
 
-	// Loop through every photographer and describe them
+	// Start listening on port 8080
+	fmt.Println("thegambar running on http://localhost:8080")
+	http.ListenAndServe(":8080", nil)
+}
+
+func homepageHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "<h1>Welcome to thegambar</h1>")
+	fmt.Fprintf(w, "<p>%d photographers and counting.</p>", len(photographers))
+	fmt.Fprintf(w, "<hr>")
+
 	for _, p := range photographers {
-		describe(p)
-		fmt.Println("---")
+		fmt.Fprintf(w, "<div style='margin-bottom:20px'>")
+		fmt.Fprintf(w, "<h2>%s</h2>", p.Name)
+		fmt.Fprintf(w, "<p>%s · %s</p>", p.Specialty, p.City)
+		printContactHTML(w, p)
+		fmt.Fprintf(w, "</div>")
 	}
 }
 
-// describe takes one Photographer and prints their summary.
-// Notice Razif has no email — that's fine, it'll just print empty for now.
-func describe(p Photographer) {
-	fmt.Printf("%s | %s | %s\n", p.Name, p.Specialty, p.City)
-	printContact(p)
-}
-
-func printContact(p Photographer) {
+func printContactHTML(w http.ResponseWriter, p Photographer) {
 	if p.Email != "" {
-		fmt.Printf("Email: %s\n", p.Email)
+		fmt.Fprintf(w, "<p>Email: %s</p>", p.Email)
 	}
 	if p.WhatsApp != "" {
-		fmt.Printf("WhatsApp: %s\n", p.WhatsApp)
+		fmt.Fprintf(w, "<p>WhatsApp: %s</p>", p.WhatsApp)
 	}
 	if p.Website != "" {
-		fmt.Printf("Website: %s\n", p.Website)
+		fmt.Fprintf(w, "<p>Website: <a href='https://%s'>%s</a></p>", p.Website, p.Website)
 	}
 }
