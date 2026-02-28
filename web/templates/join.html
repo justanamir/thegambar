@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join thegambar - List Your Photography</title>
+    <link rel="stylesheet" href="/static/css/output.css">
+</head>
+<body class="font-body text-ink bg-cream min-h-screen">
+
+    <!-- Nav -->
+    <header class="border-b border-ink/20 px-6 py-4">
+        <a href="/" class="font-display text-2xl font-bold tracking-tight text-ink hover:text-orange transition-colors duration-150">thegambar</a>
+    </header>
+
+    <main class="max-w-xl mx-auto px-6 py-12">
+
+        <h1 class="font-display text-3xl font-bold text-ink mb-2">List your photography</h1>
+        <p class="text-ink/50 text-sm mb-8">Free to join. Appears in the directory immediately.</p>
+
+        <!-- Error box — only renders if there are errors -->
+        {{if .Errors}}
+        <div class="bg-orange/10 border border-orange/30 rounded-xl px-5 py-4 mb-6">
+            <p class="text-sm font-medium text-orange mb-2">Please fix the following:</p>
+            <ul class="list-disc list-inside text-sm text-ink/70 space-y-1">
+                {{range .Errors}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+        </div>
+        {{end}}
+
+        <form method="POST" action="/join" class="space-y-5">
+
+            <!-- Name -->
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="name">
+                    Full name <span class="text-orange">*</span>
+                </label>
+                <input
+                    type="text" id="name" name="name"
+                    value="{{.Name}}"
+                    placeholder="e.g. Amir Hadi"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150"
+                >
+            </div>
+
+            <!-- Specialty -->
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="specialty">
+                    Specialty <span class="text-orange">*</span>
+                </label>
+                <input
+                    type="text" id="specialty" name="specialty"
+                    value="{{.Specialty}}"
+                    placeholder="e.g. Wedding, Street, Portrait, Commercial"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150"
+                >
+            </div>
+
+            <!-- City -->
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="city">
+                    City <span class="text-orange">*</span>
+                </label>
+                <input
+                    type="text" id="city" name="city"
+                    value="{{.City}}"
+                    placeholder="e.g. Kuala Lumpur, Jakarta, Singapore"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150"
+                >
+            </div>
+
+            <!-- Bio -->
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="bio">
+                    Short bio <span class="text-ink/30 font-normal">(optional)</span>
+                </label>
+                <textarea
+                    id="bio" name="bio" rows="3"
+                    placeholder="A sentence or two about your style and experience."
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150 resize-none"
+                >{{.Bio}}</textarea>
+            </div>
+
+            <!-- Divider -->
+            <div class="pt-2">
+                <p class="text-sm font-medium text-ink mb-1">Contact details</p>
+                <p class="text-xs text-ink/40 mb-4">At least one required. Shared with your consent - visitors contact you directly.</p>
+            </div>
+
+            <!-- Email -->
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="email">Email</label>
+                <input
+                    type="email" id="email" name="email"
+                    value="{{.Email}}"
+                    placeholder="you@example.com"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150"
+                >
+            </div>
+
+            <!-- WhatsApp -->
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="whatsapp">WhatsApp number</label>
+                <input
+                    type="tel" id="whatsapp" name="whatsapp"
+                    value="{{.Whatsapp}}"
+                    placeholder="601XXXXXXXX (with country code, no +)"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150"
+                >
+            </div>
+
+            <!-- Website -->
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="website">Website <span class="text-ink/30 font-normal">(optional)</span></label>
+                <input
+                    type="text" id="website" name="website"
+                    value="{{.Website}}"
+                    placeholder="yourportfolio.com"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150"
+                >
+            </div>
+
+            <!-- Submit -->
+            <div class="pt-4">
+                <button
+                    type="submit"
+                    class="w-full bg-orange text-cream font-medium text-sm px-6 py-4 rounded-xl hover:bg-orange/80 transition-colors duration-150"
+                >
+                    Join the directory →
+                </button>
+            </div>
+
+        </form>
+
+    </main>
+
+</body>
+</html>

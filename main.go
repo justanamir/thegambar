@@ -41,6 +41,7 @@ func main() {
 
 	http.HandleFunc("/", homepageHandler)
 	http.HandleFunc("/photographer/", profileHandler)
+	http.HandleFunc("/join", joinHandler)
 
 	fmt.Println("thegambar running on http://localhost:8080")
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
@@ -79,4 +80,92 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templates.ExecuteTemplate(w, "profile.html", photographer)
+}
+
+func joinHandler(w http.ResponseWriter, r *http.Request) {
+	// GET → show the empty form
+	if r.Method == http.MethodGet {
+		templates.ExecuteTemplate(w, "join.html", nil)
+		return
+	}
+
+	// POST → process the submission
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// ParseForm makes r.FormValue() work.
+	// Without this, form fields come back as empty strings.
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	// Pull values from the form.
+	// r.FormValue trims nothing — you get exactly what the user typed.
+	name := strings.TrimSpace(r.FormValue("name"))
+	specialty := strings.TrimSpace(r.FormValue("specialty"))
+	city := strings.TrimSpace(r.FormValue("city"))
+	bio := strings.TrimSpace(r.FormValue("bio"))
+	email := strings.TrimSpace(r.FormValue("email"))
+	whatsapp := strings.TrimSpace(r.FormValue("whatsapp"))
+	website := strings.TrimSpace(r.FormValue("website"))
+
+	// --- Validation ---
+	// Collect all errors so we can show them all at once,
+	// not one-by-one (nothing more frustrating than whack-a-mole form errors).
+	var formErrors []string
+
+	if name == "" {
+		formErrors = append(formErrors, "Name is required.")
+	}
+	if specialty == "" {
+		formErrors = append(formErrors, "Specialty is required.")
+	}
+	if city == "" {
+		formErrors = append(formErrors, "City is required.")
+	}
+	if email == "" && whatsapp == "" {
+		formErrors = append(formErrors, "At least one contact method (email or WhatsApp) is required.")
+	}
+
+	// If there are errors, re-render the form with the errors AND the values
+	// they already typed — never make users retype a full form.
+	if len(formErrors) > 0 {
+		templates.ExecuteTemplate(w, "join.html", map[string]any{
+			"Errors":    formErrors,
+			"Name":      name,
+			"Specialty": specialty,
+			"City":      city,
+			"Bio":       bio,
+			"Email":     email,
+			"Whatsapp":  whatsapp,
+			"Website":   website,
+		})
+		return
+	}
+
+	// --- Database insert ---
+	// sqlc generated this function. It expects a params struct.
+	// Nullable fields use sql.NullString — that's the Go way of saying "this might be empty".
+	photographer, err := queries.InsertPhotographer(r.Context(), db.InsertPhotographerParams{
+		Name:      name,
+		Specialty: specialty,
+		City:      city,
+		Bio:       bio,
+		Email:     email,
+		Whatsapp:  whatsapp,
+		Website:   website,
+	})
+	if err != nil {
+		http.Error(w, "Failed to save photographer", http.StatusInternalServerError)
+		log.Println("joinHandler insert error:", err)
+		return
+	}
+
+	// Success — redirect to their new profile page.
+	// 303 See Other is the correct redirect after a POST.
+	// (Not 301 or 302 — those can cause browsers to re-POST on back button.)
+	http.Redirect(w, r, fmt.Sprintf("/photographer/%d", photographer.ID), http.StatusSeeOther)
 }

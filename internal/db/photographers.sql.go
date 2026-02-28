@@ -42,6 +42,47 @@ func (q *Queries) GetPhotographer(ctx context.Context, id int32) (GetPhotographe
 	return i, err
 }
 
+const insertPhotographer = `-- name: InsertPhotographer :one
+INSERT INTO photographers (name, specialty, city, bio, email, whatsapp, website)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, name, specialty, city, bio, email, whatsapp, website, created_at
+`
+
+type InsertPhotographerParams struct {
+	Name      string `json:"name"`
+	Specialty string `json:"specialty"`
+	City      string `json:"city"`
+	Bio       string `json:"bio"`
+	Email     string `json:"email"`
+	Whatsapp  string `json:"whatsapp"`
+	Website   string `json:"website"`
+}
+
+func (q *Queries) InsertPhotographer(ctx context.Context, arg InsertPhotographerParams) (Photographer, error) {
+	row := q.db.QueryRowContext(ctx, insertPhotographer,
+		arg.Name,
+		arg.Specialty,
+		arg.City,
+		arg.Bio,
+		arg.Email,
+		arg.Whatsapp,
+		arg.Website,
+	)
+	var i Photographer
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Specialty,
+		&i.City,
+		&i.Bio,
+		&i.Email,
+		&i.Whatsapp,
+		&i.Website,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const listPhotographers = `-- name: ListPhotographers :many
 SELECT id, name, specialty, city
 FROM photographers
