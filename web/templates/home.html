@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>thegambar — Find Photographers in Southeast Asia</title>
+</head>
+<body>
+    <h1>Welcome to thegambar</h1>
+    <p>{{len .}} photographers and counting.</p>
+    <hr>
+
+    {{range .}}
+    <div style="margin-bottom:20px">
+        <h2><a href="/photographer/{{.ID}}">{{.Name}}</a></h2>
+        <p>{{.Specialty}} · {{.City}}</p>
+    </div>
+    {{end}}
+</body>
+</html>

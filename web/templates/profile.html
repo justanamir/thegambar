@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{.Name}} — thegambar</title>
+</head>
+<body>
+    <a href="/">← Back to directory</a>
+
+    <h1>{{.Name}}</h1>
+    <p><strong>{{.Specialty}}</strong> · {{.City}}</p>
+    <p>{{.Bio}}</p>
+
+    {{if .Email}}
+        <p>Email: {{.Email}}</p>
+    {{end}}
+    {{if .WhatsApp}}
+        <p>WhatsApp: {{.WhatsApp}}</p>
+    {{end}}
+    {{if .Website}}
+        <p>Website: <a href="https://{{.Website}}">{{.Website}}</a></p>
+    {{end}}
+</body>
+</html>
