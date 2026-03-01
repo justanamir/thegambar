@@ -1,0 +1,3 @@
+ALTER TABLE photographers
+ADD COLUMN avatar_url TEXT NOT NULL DEFAULT '',
+ADD COLUMN cover_url  TEXT NOT NULL DEFAULT '';

@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"thegambar/internal/db"
+	"thegambar/internal/storage"
 
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
@@ -18,11 +19,21 @@ import (
 
 var templates = template.Must(template.ParseGlob("web/templates/*.html"))
 var queries *db.Queries
+var r2 *storage.R2Client
 
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
+	r2 = storage.NewR2Client(
+		os.Getenv("R2_ACCOUNT_ID"),
+		os.Getenv("R2_ACCESS_KEY_ID"),
+		os.Getenv("R2_SECRET_ACCESS_KEY"),
+		os.Getenv("R2_BUCKET_NAME"),
+		os.Getenv("R2_PUBLIC_URL"),
+	)
+	fmt.Println("R2 storage client initialised ✓")
 
 	conn, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
@@ -41,6 +52,7 @@ func main() {
 
 	http.HandleFunc("/", homepageHandler)
 	http.HandleFunc("/photographer/", profileHandler)
+	http.HandleFunc("/photos/", photoUploadHandler)
 	http.HandleFunc("/join", joinHandler)
 
 	fmt.Println("thegambar running on http://localhost:8080")
@@ -168,4 +180,64 @@ func joinHandler(w http.ResponseWriter, r *http.Request) {
 	// 303 See Other is the correct redirect after a POST.
 	// (Not 301 or 302 — those can cause browsers to re-POST on back button.)
 	http.Redirect(w, r, fmt.Sprintf("/photographer/%d", photographer.ID), http.StatusSeeOther)
+}
+
+func photoUploadHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Extract ID from /photos/3
+	idStr := strings.TrimPrefix(r.URL.Path, "/photos/")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	// 10MB max — generous for two photos, protects your server
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		http.Error(w, "File too large", http.StatusBadRequest)
+		return
+	}
+
+	var avatarURL, coverURL string
+
+	// Upload avatar if provided
+	if avatarFile, avatarHeader, err := r.FormFile("avatar"); err == nil {
+		defer avatarFile.Close()
+		url, err := r2.UploadFile(r.Context(), avatarFile, avatarHeader)
+		if err != nil {
+			http.Error(w, "Avatar upload failed: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		avatarURL = url
+	}
+
+	// Upload cover if provided
+	if coverFile, coverHeader, err := r.FormFile("cover"); err == nil {
+		defer coverFile.Close()
+		url, err := r2.UploadFile(r.Context(), coverFile, coverHeader)
+		if err != nil {
+			http.Error(w, "Cover upload failed: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		coverURL = url
+	}
+
+	// Save URLs to database
+	_, err = queries.UpdatePhotographerPhotos(r.Context(), db.UpdatePhotographerPhotosParams{
+		ID:        int32(id),
+		AvatarUrl: avatarURL,
+		CoverUrl:  coverURL,
+	})
+	if err != nil {
+		http.Error(w, "Database error", http.StatusInternalServerError)
+		log.Println("photoUploadHandler db error:", err)
+		return
+	}
+
+	// Back to their profile
+	http.Redirect(w, r, fmt.Sprintf("/photographer/%d", id), http.StatusSeeOther)
 }

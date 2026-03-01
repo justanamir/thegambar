@@ -27,10 +27,14 @@
         <aside class="md:sticky md:top-8 md:w-72 md:flex-shrink-0 mb-8 md:mb-0">
 
             <!-- Avatar placeholder -->
-            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full bg-warm flex items-center justify-center mb-4 shadow-sm">
+            <div class="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-warm flex items-center justify-center mb-4 shadow-sm">
+                {{if .AvatarUrl}}
+                <img src="{{.AvatarUrl}}" alt="{{.Name}}" class="w-full h-full object-cover">
+                {{else}}
                 <span class="font-display text-4xl md:text-5xl font-bold text-ink/20 select-none">
                     {{slice .Name 0 1}}
                 </span>
+                {{end}}
             </div>
 
             <!-- Name + specialty + city -->
@@ -86,13 +90,42 @@
         <main class="flex-1">
             <h2 class="font-display text-lg font-bold text-ink mb-4 tracking-tight">Portfolio</h2>
 
-            <!-- 2-column grid. Real photos will replace these placeholders. -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="aspect-square bg-warm rounded-xl flex items-center justify-center col-span-2">
-                    <p class="text-ink/40 text-sm">Portfolio arrives on Day 9 — image upload + storage.</p>
+        <!-- Upload form — shown when no cover photo yet -->
+        {{if eq .CoverUrl ""}}
+        <div class="border-2 border-dashed border-ink/20 rounded-2xl p-8 mb-6">
+            <p class="text-sm text-ink/50 mb-4 text-center">Add your photos to complete your profile</p>
+            <form method="POST" action="/photos/{{.ID}}" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-ink/60 mb-1 uppercase tracking-widest">Profile photo</label>
+                    <input type="file" name="avatar" accept="image/*"
+                        class="w-full text-sm text-ink/60 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-orange file:text-cream file:text-sm file:font-medium hover:file:bg-orange/80 cursor-pointer">
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-ink/60 mb-1 uppercase tracking-widest">Cover photo</label>
+                    <input type="file" name="cover" accept="image/*"
+                        class="w-full text-sm text-ink/60 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-orange file:text-cream file:text-sm file:font-medium hover:file:bg-orange/80 cursor-pointer">
+                </div>
+                <button type="submit"
+                    class="w-full bg-orange text-cream text-sm font-medium px-4 py-3 rounded-xl hover:bg-orange/80 transition-colors duration-150">
+                    Upload photos →
+                </button>
+            </form>
+        </div>
+        {{end}}
+
+        <!-- Portfolio grid -->
+        <div class="grid grid-cols-2 gap-3">
+            {{if .CoverUrl}}
+            <div class="col-span-2 aspect-[16/9] rounded-xl overflow-hidden">
+                <img src="{{.CoverUrl}}" alt="{{.Name}} cover photo" class="w-full h-full object-cover">
             </div>
-        </main>
+            {{else}}
+            <div class="aspect-square bg-warm rounded-xl flex items-center justify-center col-span-2">
+                <p class="text-ink/40 text-sm">No portfolio photos yet.</p>
+            </div>
+            {{end}}
+        </div>
+    </main>
 
     </div>
 

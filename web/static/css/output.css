@@ -659,6 +659,10 @@ video {
   display: none;
 }
 
+.aspect-\[16\/9\] {
+  aspect-ratio: 16/9;
+}
+
 .aspect-\[4\/3\] {
   aspect-ratio: 4/3;
 }
@@ -669,6 +673,10 @@ video {
 
 .h-24 {
   height: 6rem;
+}
+
+.h-full {
+  height: 100%;
 }
 
 .min-h-screen {
@@ -697,6 +705,10 @@ video {
 
 .flex-1 {
   flex: 1 1 0%;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .select-none {
@@ -771,6 +783,12 @@ video {
   margin-bottom: calc(0.25rem * var(--tw-space-y-reverse));
 }
 
+.space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-y-reverse: 0;
+  margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse)));
+  margin-bottom: calc(1rem * var(--tw-space-y-reverse));
+}
+
 .space-y-5 > :not([hidden]) ~ :not([hidden]) {
   --tw-space-y-reverse: 0;
   margin-top: calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));
@@ -797,12 +815,20 @@ video {
   border-width: 1px;
 }
 
+.border-2 {
+  border-width: 2px;
+}
+
 .border-b {
   border-bottom-width: 1px;
 }
 
 .border-t {
   border-top-width: 1px;
+}
+
+.border-dashed {
+  border-style: dashed;
 }
 
 .border-ink\/10 {
@@ -840,8 +866,17 @@ video {
   background-color: rgb(255 243 214 / var(--tw-bg-opacity, 1));
 }
 
+.object-cover {
+  -o-object-fit: cover;
+     object-fit: cover;
+}
+
 .p-5 {
   padding: 1.25rem;
+}
+
+.p-8 {
+  padding: 2rem;
 }
 
 .px-3 {
@@ -1091,6 +1126,47 @@ video {
   transition-duration: 300ms;
 }
 
+.file\:mr-3::file-selector-button {
+  margin-right: 0.75rem;
+}
+
+.file\:rounded-xl::file-selector-button {
+  border-radius: 0.75rem;
+}
+
+.file\:border-0::file-selector-button {
+  border-width: 0px;
+}
+
+.file\:bg-orange::file-selector-button {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 121 0 / var(--tw-bg-opacity, 1));
+}
+
+.file\:px-4::file-selector-button {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.file\:py-2::file-selector-button {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.file\:text-sm::file-selector-button {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.file\:font-medium::file-selector-button {
+  font-weight: 500;
+}
+
+.file\:text-cream::file-selector-button {
+  --tw-text-opacity: 1;
+  color: rgb(255 253 245 / var(--tw-text-opacity, 1));
+}
+
 .hover\:bg-orange\/80:hover {
   background-color: rgb(255 121 0 / 0.8);
 }
@@ -1114,6 +1190,10 @@ video {
   --tw-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.hover\:file\:bg-orange\/80::file-selector-button:hover {
+  background-color: rgb(255 121 0 / 0.8);
 }
 
 .focus\:border-orange:focus {

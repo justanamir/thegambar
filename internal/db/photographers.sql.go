@@ -10,7 +10,7 @@ import (
 )
 
 const getPhotographer = `-- name: GetPhotographer :one
-SELECT id, name, specialty, city, bio, email, whatsapp, website
+SELECT id, name, specialty, city, bio, email, whatsapp, website, avatar_url, cover_url
 FROM photographers
 WHERE id = $1
 `
@@ -24,6 +24,8 @@ type GetPhotographerRow struct {
 	Email     string `json:"email"`
 	Whatsapp  string `json:"whatsapp"`
 	Website   string `json:"website"`
+	AvatarUrl string `json:"avatar_url"`
+	CoverUrl  string `json:"cover_url"`
 }
 
 func (q *Queries) GetPhotographer(ctx context.Context, id int32) (GetPhotographerRow, error) {
@@ -38,6 +40,8 @@ func (q *Queries) GetPhotographer(ctx context.Context, id int32) (GetPhotographe
 		&i.Email,
 		&i.Whatsapp,
 		&i.Website,
+		&i.AvatarUrl,
+		&i.CoverUrl,
 	)
 	return i, err
 }
@@ -45,7 +49,7 @@ func (q *Queries) GetPhotographer(ctx context.Context, id int32) (GetPhotographe
 const insertPhotographer = `-- name: InsertPhotographer :one
 INSERT INTO photographers (name, specialty, city, bio, email, whatsapp, website)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, name, specialty, city, bio, email, whatsapp, website, created_at
+RETURNING id, name, specialty, city, bio, email, whatsapp, website, created_at, avatar_url, cover_url
 `
 
 type InsertPhotographerParams struct {
@@ -79,12 +83,14 @@ func (q *Queries) InsertPhotographer(ctx context.Context, arg InsertPhotographer
 		&i.Whatsapp,
 		&i.Website,
 		&i.CreatedAt,
+		&i.AvatarUrl,
+		&i.CoverUrl,
 	)
 	return i, err
 }
 
 const listPhotographers = `-- name: ListPhotographers :many
-SELECT id, name, specialty, city
+SELECT id, name, specialty, city, cover_url
 FROM photographers
 ORDER BY id
 `
@@ -94,6 +100,7 @@ type ListPhotographersRow struct {
 	Name      string `json:"name"`
 	Specialty string `json:"specialty"`
 	City      string `json:"city"`
+	CoverUrl  string `json:"cover_url"`
 }
 
 func (q *Queries) ListPhotographers(ctx context.Context) ([]ListPhotographersRow, error) {
@@ -110,6 +117,7 @@ func (q *Queries) ListPhotographers(ctx context.Context) ([]ListPhotographersRow
 			&i.Name,
 			&i.Specialty,
 			&i.City,
+			&i.CoverUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -122,4 +130,24 @@ func (q *Queries) ListPhotographers(ctx context.Context) ([]ListPhotographersRow
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePhotographerPhotos = `-- name: UpdatePhotographerPhotos :one
+UPDATE photographers
+SET avatar_url = $2, cover_url = $3
+WHERE id = $1
+RETURNING id
+`
+
+type UpdatePhotographerPhotosParams struct {
+	ID        int32  `json:"id"`
+	AvatarUrl string `json:"avatar_url"`
+	CoverUrl  string `json:"cover_url"`
+}
+
+func (q *Queries) UpdatePhotographerPhotos(ctx context.Context, arg UpdatePhotographerPhotosParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, updatePhotographerPhotos, arg.ID, arg.AvatarUrl, arg.CoverUrl)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }

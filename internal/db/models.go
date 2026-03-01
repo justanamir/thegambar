@@ -18,4 +18,6 @@ type Photographer struct {
 	Whatsapp  string    `json:"whatsapp"`
 	Website   string    `json:"website"`
 	CreatedAt time.Time `json:"created_at"`
+	AvatarUrl string    `json:"avatar_url"`
+	CoverUrl  string    `json:"cover_url"`
 }
