@@ -46,10 +46,49 @@ func (q *Queries) GetPhotographer(ctx context.Context, id int32) (GetPhotographe
 	return i, err
 }
 
+const getPhotographerByToken = `-- name: GetPhotographerByToken :one
+SELECT id, name, specialty, city, bio, email, whatsapp, website, avatar_url, cover_url, edit_token
+FROM photographers
+WHERE edit_token = $1
+`
+
+type GetPhotographerByTokenRow struct {
+	ID        int32  `json:"id"`
+	Name      string `json:"name"`
+	Specialty string `json:"specialty"`
+	City      string `json:"city"`
+	Bio       string `json:"bio"`
+	Email     string `json:"email"`
+	Whatsapp  string `json:"whatsapp"`
+	Website   string `json:"website"`
+	AvatarUrl string `json:"avatar_url"`
+	CoverUrl  string `json:"cover_url"`
+	EditToken string `json:"edit_token"`
+}
+
+func (q *Queries) GetPhotographerByToken(ctx context.Context, editToken string) (GetPhotographerByTokenRow, error) {
+	row := q.db.QueryRowContext(ctx, getPhotographerByToken, editToken)
+	var i GetPhotographerByTokenRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Specialty,
+		&i.City,
+		&i.Bio,
+		&i.Email,
+		&i.Whatsapp,
+		&i.Website,
+		&i.AvatarUrl,
+		&i.CoverUrl,
+		&i.EditToken,
+	)
+	return i, err
+}
+
 const insertPhotographer = `-- name: InsertPhotographer :one
-INSERT INTO photographers (name, specialty, city, bio, email, whatsapp, website)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, name, specialty, city, bio, email, whatsapp, website, created_at, avatar_url, cover_url
+INSERT INTO photographers (name, specialty, city, bio, email, whatsapp, website, edit_token)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING id, name, specialty, city, bio, email, whatsapp, website, created_at, avatar_url, cover_url, edit_token
 `
 
 type InsertPhotographerParams struct {
@@ -60,6 +99,7 @@ type InsertPhotographerParams struct {
 	Email     string `json:"email"`
 	Whatsapp  string `json:"whatsapp"`
 	Website   string `json:"website"`
+	EditToken string `json:"edit_token"`
 }
 
 func (q *Queries) InsertPhotographer(ctx context.Context, arg InsertPhotographerParams) (Photographer, error) {
@@ -71,6 +111,7 @@ func (q *Queries) InsertPhotographer(ctx context.Context, arg InsertPhotographer
 		arg.Email,
 		arg.Whatsapp,
 		arg.Website,
+		arg.EditToken,
 	)
 	var i Photographer
 	err := row.Scan(
@@ -85,6 +126,7 @@ func (q *Queries) InsertPhotographer(ctx context.Context, arg InsertPhotographer
 		&i.CreatedAt,
 		&i.AvatarUrl,
 		&i.CoverUrl,
+		&i.EditToken,
 	)
 	return i, err
 }
@@ -130,6 +172,40 @@ func (q *Queries) ListPhotographers(ctx context.Context) ([]ListPhotographersRow
 		return nil, err
 	}
 	return items, nil
+}
+
+const updatePhotographer = `-- name: UpdatePhotographer :one
+UPDATE photographers
+SET name = $2, specialty = $3, city = $4, bio = $5, email = $6, whatsapp = $7, website = $8
+WHERE edit_token = $1
+RETURNING id
+`
+
+type UpdatePhotographerParams struct {
+	EditToken string `json:"edit_token"`
+	Name      string `json:"name"`
+	Specialty string `json:"specialty"`
+	City      string `json:"city"`
+	Bio       string `json:"bio"`
+	Email     string `json:"email"`
+	Whatsapp  string `json:"whatsapp"`
+	Website   string `json:"website"`
+}
+
+func (q *Queries) UpdatePhotographer(ctx context.Context, arg UpdatePhotographerParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, updatePhotographer,
+		arg.EditToken,
+		arg.Name,
+		arg.Specialty,
+		arg.City,
+		arg.Bio,
+		arg.Email,
+		arg.Whatsapp,
+		arg.Website,
+	)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const updatePhotographerPhotos = `-- name: UpdatePhotographerPhotos :one

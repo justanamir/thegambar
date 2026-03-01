@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"html/template"
 	"log"
@@ -54,6 +56,7 @@ func main() {
 	http.HandleFunc("/photographer/", profileHandler)
 	http.HandleFunc("/photos/", photoUploadHandler)
 	http.HandleFunc("/join", joinHandler)
+	http.HandleFunc("/edit/", editHandler)
 
 	fmt.Println("thegambar running on http://localhost:8080")
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
@@ -95,27 +98,21 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func joinHandler(w http.ResponseWriter, r *http.Request) {
-	// GET → show the empty form
 	if r.Method == http.MethodGet {
 		templates.ExecuteTemplate(w, "join.html", nil)
 		return
 	}
 
-	// POST → process the submission
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// ParseForm makes r.FormValue() work.
-	// Without this, form fields come back as empty strings.
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 		return
 	}
 
-	// Pull values from the form.
-	// r.FormValue trims nothing — you get exactly what the user typed.
 	name := strings.TrimSpace(r.FormValue("name"))
 	specialty := strings.TrimSpace(r.FormValue("specialty"))
 	city := strings.TrimSpace(r.FormValue("city"))
@@ -124,11 +121,7 @@ func joinHandler(w http.ResponseWriter, r *http.Request) {
 	whatsapp := strings.TrimSpace(r.FormValue("whatsapp"))
 	website := strings.TrimSpace(r.FormValue("website"))
 
-	// --- Validation ---
-	// Collect all errors so we can show them all at once,
-	// not one-by-one (nothing more frustrating than whack-a-mole form errors).
 	var formErrors []string
-
 	if name == "" {
 		formErrors = append(formErrors, "Name is required.")
 	}
@@ -142,8 +135,6 @@ func joinHandler(w http.ResponseWriter, r *http.Request) {
 		formErrors = append(formErrors, "At least one contact method (email or WhatsApp) is required.")
 	}
 
-	// If there are errors, re-render the form with the errors AND the values
-	// they already typed — never make users retype a full form.
 	if len(formErrors) > 0 {
 		templates.ExecuteTemplate(w, "join.html", map[string]any{
 			"Errors":    formErrors,
@@ -158,9 +149,8 @@ func joinHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// --- Database insert ---
-	// sqlc generated this function. It expects a params struct.
-	// Nullable fields use sql.NullString — that's the Go way of saying "this might be empty".
+	token := generateToken()
+
 	photographer, err := queries.InsertPhotographer(r.Context(), db.InsertPhotographerParams{
 		Name:      name,
 		Specialty: specialty,
@@ -169,6 +159,7 @@ func joinHandler(w http.ResponseWriter, r *http.Request) {
 		Email:     email,
 		Whatsapp:  whatsapp,
 		Website:   website,
+		EditToken: token,
 	})
 	if err != nil {
 		http.Error(w, "Failed to save photographer", http.StatusInternalServerError)
@@ -176,10 +167,13 @@ func joinHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Success — redirect to their new profile page.
-	// 303 See Other is the correct redirect after a POST.
-	// (Not 301 or 302 — those can cause browsers to re-POST on back button.)
-	http.Redirect(w, r, fmt.Sprintf("/photographer/%d", photographer.ID), http.StatusSeeOther)
+	// Show the token page instead of redirecting directly to profile.
+	// The photographer must save this link — it's their only way to edit.
+	templates.ExecuteTemplate(w, "token.html", map[string]any{
+		"Name":      photographer.Name,
+		"ID":        photographer.ID,
+		"EditToken": token,
+	})
 }
 
 func photoUploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -240,4 +234,114 @@ func photoUploadHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Back to their profile
 	http.Redirect(w, r, fmt.Sprintf("/photographer/%d", id), http.StatusSeeOther)
+}
+
+func editHandler(w http.ResponseWriter, r *http.Request) {
+	token := strings.TrimPrefix(r.URL.Path, "/edit/")
+	if token == "" {
+		http.Error(w, "Invalid edit link", http.StatusBadRequest)
+		return
+	}
+
+	// GET — show pre-filled form
+	if r.Method == http.MethodGet {
+		photographer, err := queries.GetPhotographerByToken(r.Context(), token)
+		if err != nil {
+			http.Error(w, "Edit link not found", http.StatusNotFound)
+			return
+		}
+		templates.ExecuteTemplate(w, "edit.html", map[string]any{
+			"ID":        photographer.ID,
+			"EditToken": photographer.EditToken,
+			"Name":      photographer.Name,
+			"Specialty": photographer.Specialty,
+			"City":      photographer.City,
+			"Bio":       photographer.Bio,
+			"Email":     photographer.Email,
+			"Whatsapp":  photographer.Whatsapp,
+			"Website":   photographer.Website,
+		})
+		return
+	}
+
+	// POST — save changes
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
+	}
+
+	name := strings.TrimSpace(r.FormValue("name"))
+	specialty := strings.TrimSpace(r.FormValue("specialty"))
+	city := strings.TrimSpace(r.FormValue("city"))
+	bio := strings.TrimSpace(r.FormValue("bio"))
+	email := strings.TrimSpace(r.FormValue("email"))
+	whatsapp := strings.TrimSpace(r.FormValue("whatsapp"))
+	website := strings.TrimSpace(r.FormValue("website"))
+
+	var formErrors []string
+	if name == "" {
+		formErrors = append(formErrors, "Name is required.")
+	}
+	if specialty == "" {
+		formErrors = append(formErrors, "Specialty is required.")
+	}
+	if city == "" {
+		formErrors = append(formErrors, "City is required.")
+	}
+	if email == "" && whatsapp == "" {
+		formErrors = append(formErrors, "At least one contact method is required.")
+	}
+
+	if len(formErrors) > 0 {
+		// Re-fetch to get ID and other fields for the template
+		photographer, err := queries.GetPhotographerByToken(r.Context(), token)
+		if err != nil {
+			http.Error(w, "Edit link not found", http.StatusNotFound)
+			return
+		}
+		templates.ExecuteTemplate(w, "edit.html", map[string]any{
+			"Errors":    formErrors,
+			"ID":        photographer.ID,
+			"EditToken": token,
+			"Name":      name,
+			"Specialty": specialty,
+			"City":      city,
+			"Bio":       bio,
+			"Email":     email,
+			"Whatsapp":  whatsapp,
+			"Website":   website,
+		})
+		return
+	}
+
+	id, err := queries.UpdatePhotographer(r.Context(), db.UpdatePhotographerParams{
+		EditToken: token,
+		Name:      name,
+		Specialty: specialty,
+		City:      city,
+		Bio:       bio,
+		Email:     email,
+		Whatsapp:  whatsapp,
+		Website:   website,
+	})
+	if err != nil {
+		http.Error(w, "Failed to update profile", http.StatusInternalServerError)
+		log.Println("editHandler update error:", err)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/photographer/%d", id), http.StatusSeeOther)
+}
+
+func generateToken() string {
+	bytes := make([]byte, 16)
+	if _, err := rand.Read(bytes); err != nil {
+		log.Fatal("Failed to generate token:", err)
+	}
+	return hex.EncodeToString(bytes)
 }

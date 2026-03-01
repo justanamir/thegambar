@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit your profile — thegambar</title>
+    <link rel="stylesheet" href="/static/css/output.css">
+</head>
+<body class="font-body text-ink bg-cream min-h-screen">
+
+    <header class="border-b border-ink/20 px-6 py-4">
+        <a href="/" class="font-display text-2xl font-bold tracking-tight text-ink hover:text-orange transition-colors duration-150">thegambar</a>
+    </header>
+
+    <main class="max-w-xl mx-auto px-6 py-12">
+
+        <h1 class="font-display text-3xl font-bold text-ink mb-2">Edit your profile</h1>
+        <p class="text-ink/50 text-sm mb-8">Changes appear on your profile immediately.</p>
+
+        {{if .Errors}}
+        <div class="bg-orange/10 border border-orange/30 rounded-xl px-5 py-4 mb-6">
+            <p class="text-sm font-medium text-orange mb-2">Please fix the following:</p>
+            <ul class="list-disc list-inside text-sm text-ink/70 space-y-1">
+                {{range .Errors}}
+                <li>{{.}}</li>
+                {{end}}
+            </ul>
+        </div>
+        {{end}}
+
+        <form method="POST" action="/edit/{{.EditToken}}" class="space-y-5">
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="name">
+                    Full name <span class="text-orange">*</span>
+                </label>
+                <input type="text" id="name" name="name" value="{{.Name}}"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="specialty">
+                    Specialty <span class="text-orange">*</span>
+                </label>
+                <input type="text" id="specialty" name="specialty" value="{{.Specialty}}"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="city">
+                    City <span class="text-orange">*</span>
+                </label>
+                <input type="text" id="city" name="city" value="{{.City}}"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="bio">
+                    Short bio <span class="text-ink/30 font-normal">(optional)</span>
+                </label>
+                <textarea id="bio" name="bio" rows="3"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150 resize-none">{{.Bio}}</textarea>
+            </div>
+
+            <div class="pt-2">
+                <p class="text-sm font-medium text-ink mb-1">Contact details</p>
+                <p class="text-xs text-ink/40 mb-4">At least one required.</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="email">Email</label>
+                <input type="email" id="email" name="email" value="{{.Email}}"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="whatsapp">WhatsApp number</label>
+                <input type="tel" id="whatsapp" name="whatsapp" value="{{.Whatsapp}}"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-ink mb-1" for="website">
+                    Website <span class="text-ink/30 font-normal">(optional)</span>
+                </label>
+                <input type="text" id="website" name="website" value="{{.Website}}"
+                    class="w-full bg-warm border border-ink/20 rounded-xl px-4 py-3 text-sm text-ink placeholder-ink/30 focus:outline-none focus:border-orange transition-colors duration-150">
+            </div>
+
+            <div class="pt-4 flex gap-3">
+                <button type="submit"
+                    class="flex-1 bg-orange text-cream font-medium text-sm px-6 py-4 rounded-xl hover:bg-orange/80 transition-colors duration-150">
+                    Save changes →
+                </button>
+                <a href="/photographer/{{.ID}}"
+                    class="flex-1 text-center border border-ink/20 text-ink font-medium text-sm px-6 py-4 rounded-xl hover:bg-warm transition-colors duration-150">
+                    Cancel
+                </a>
+            </div>
+
+        </form>
+
+        <!-- Photo upload section -->
+        <div class="mt-10 pt-8 border-t border-ink/10">
+            <h2 class="font-display text-lg font-bold text-ink mb-1">Update photos</h2>
+            <p class="text-xs text-ink/40 mb-4">Uploading new photos replaces your current ones.</p>
+            <form method="POST" action="/photos/{{.ID}}" enctype="multipart/form-data" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-ink/60 mb-1 uppercase tracking-widest">Profile photo</label>
+                    <input type="file" name="avatar" accept="image/*"
+                        class="w-full text-sm text-ink/60 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-orange file:text-cream file:text-sm file:font-medium hover:file:bg-orange/80 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-ink/60 mb-1 uppercase tracking-widest">Cover photo</label>
+                    <input type="file" name="cover" accept="image/*"
+                        class="w-full text-sm text-ink/60 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-orange file:text-cream file:text-sm file:font-medium hover:file:bg-orange/80 cursor-pointer">
+                </div>
+                <button type="submit"
+                    class="w-full bg-warm border border-ink/20 text-ink text-sm font-medium px-4 py-3 rounded-xl hover:bg-orange/10 transition-colors duration-150">
+                    Update photos →
+                </button>
+            </form>
+        </div>
+
+    </main>
+
+</body>
+</html>

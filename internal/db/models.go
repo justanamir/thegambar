@@ -20,4 +20,5 @@ type Photographer struct {
 	CreatedAt time.Time `json:"created_at"`
 	AvatarUrl string    `json:"avatar_url"`
 	CoverUrl  string    `json:"cover_url"`
+	EditToken string    `json:"edit_token"`
 }

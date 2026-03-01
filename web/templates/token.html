@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save your edit link — thegambar</title>
+    <link rel="stylesheet" href="/static/css/output.css">
+</head>
+<body class="font-body text-ink bg-cream min-h-screen">
+
+    <header class="border-b border-ink/20 px-6 py-4">
+        <a href="/" class="font-display text-2xl font-bold tracking-tight text-ink hover:text-orange transition-colors duration-150">thegambar</a>
+    </header>
+
+    <main class="max-w-lg mx-auto px-6 py-16 text-center">
+
+        <div class="text-5xl mb-6">🎉</div>
+
+        <h1 class="font-display text-3xl font-bold text-ink mb-3">
+            You're listed, {{.Name}}
+        </h1>
+        <p class="text-ink/50 text-sm mb-10">
+            Your profile is live. Save the link below — it's the only way to edit your profile later.
+        </p>
+
+        <!-- Edit link box -->
+        <div class="bg-warm border border-ink/10 rounded-2xl px-6 py-5 mb-6 text-left">
+            <p class="text-xs font-medium text-ink/40 uppercase tracking-widest mb-2">Your edit link</p>
+            <p class="text-sm font-mono text-ink break-all">
+                http://localhost:8080/edit/{{.EditToken}}
+            </p>
+        </div>
+
+        <p class="text-xs text-orange font-medium mb-10">
+            ⚠️ This link won't be shown again. Save it now.
+        </p>
+
+        <div class="flex flex-col gap-3">
+            <a href="/photographer/{{.ID}}"
+               class="bg-orange text-cream text-sm font-medium px-6 py-4 rounded-xl hover:bg-orange/80 transition-colors duration-150">
+                View your profile →
+            </a>
+            <a href="/"
+               class="border border-ink/20 text-ink text-sm font-medium px-6 py-4 rounded-xl hover:bg-warm transition-colors duration-150">
+                Back to directory
+            </a>
+        </div>
+
+    </main>
+
+</body>
+</html>
